@@ -1,38 +1,55 @@
-// Select elements
 const addBtn = document.getElementById("add-btn");
 const taskInput = document.getElementById("task-input");
 const taskList = document.getElementById("task-list");
 
-// Add task on button click
+// Load tasks from localStorage
+window.addEventListener("load", () => {
+  const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  savedTasks.forEach(task => createTask(task.text, task.completed));
+});
+
+function createTask(text, completed = false) {
+  const li = document.createElement("li");
+  li.textContent = text;
+
+  if (completed) li.classList.add("completed");
+
+  li.addEventListener("click", () => {
+    li.classList.toggle("completed");
+    saveTasks();
+  });
+
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "✖";
+  delBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    li.remove();
+    saveTasks();
+  });
+
+  li.appendChild(delBtn);
+  taskList.appendChild(li);
+  saveTasks();
+}
+
 addBtn.addEventListener("click", () => {
   const taskText = taskInput.value.trim();
-
   if (taskText === "") {
     alert("Please enter a task.");
     return;
   }
 
-  // Create new task element
-  const li = document.createElement("li");
-  li.textContent = taskText;
-
-  // Toggle completed class on click
-  li.addEventListener("click", () => {
-    li.classList.toggle("completed");
-  });
-
-  // Delete button
-  const delBtn = document.createElement("button");
-  delBtn.textContent = "✖";
-  delBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // prevent toggle when clicking delete
-    li.remove();
-  });
-
-  li.appendChild(delBtn);
-  taskList.appendChild(li);
-
-  // Clear input
+  createTask(taskText);
   taskInput.value = "";
 });
 
+function saveTasks() {
+  const tasks = [];
+  document.querySelectorAll("#task-list li").forEach(li => {
+    tasks.push({
+      text: li.firstChild.textContent,
+      completed: li.classList.contains("completed"),
+    });
+  });
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
